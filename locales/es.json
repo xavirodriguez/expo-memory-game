@@ -1,0 +1,19 @@
+{
+    "welcome" : "bienvenido",
+    "nreverse": {
+        "description" : "Mira atentamente los números que aparecerán en pantalla, memorízalos, y luego, escribe la secuencia de atrás hacia adelante. Cada nivel será un poco más difícil que el anterior. ¿Estás listo para intentarlo?",
+   "insert_sequence" : "Ingresa la secuencia en orden inverso:",
+   "correct" : "¡Correcto!'",
+   "wrong" : "Incorrecto. ¡Inténtalo de nuevo!",
+   "next_round" : "Siguiente ronda"
+    },
+    "game": {
+        
+        "pause" : "Juego en pausa",
+        "continue": "Continuar",
+      "time_left" : "Tiempo restante: ${timeLeft}s",
+          "score" : "Puntuación: ${score}",
+      "next": "Siguiente ronda",
+"start" : "Comenzar"
+    }
+}
