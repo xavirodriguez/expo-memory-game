@@ -28,15 +28,16 @@ export default function HomeScreen() {
           onPress={() => router.push('/nreverse/nreverse')}
         />
         <Button
-          title={t('home.game.level')}
+          title={t('xhome.game.level')}
           onPress={() =>
             router.push({
-              pathname: '/nreverse/nreverse',
+              pathname: '/nreverse/nreverse-xstate',
               params: { level: 'easy' },
             })
           }
         />
       </ThemedView>
+      {/*
       <ThemedView style={styles.stepContainer}>
         <ThemedText type='subtitle'>Section2</ThemedText>
         <Button
@@ -48,6 +49,7 @@ export default function HomeScreen() {
           onPress={() => router.push('/nreverse')}
         />
       </ThemedView>
+        */}
     </ParallaxScrollView>
   )
 }
