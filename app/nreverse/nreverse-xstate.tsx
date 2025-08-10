@@ -88,17 +88,34 @@ interface GameRouterProps {
   readonly game: ReturnType<typeof useMemoryGameMachine>
   readonly levelParam: string | string[] | undefined
 }
+// Router de componentes basado en estado - VERSIÓN CORREGIDA
+interface GameRouterProps {
+  readonly game: ReturnType<typeof useMemoryGameMachine>
+  readonly levelParam: string | string[] | undefined
+}
 
 const GameRouter = ({ game, levelParam }: GameRouterProps) => {
-  // Estados de la máquina mapeados a componentes
+  // DEBUG: Agregar logging para diagnosticar el estado actual
+  console.log('🔍 GameRouter Debug:', {
+    gameState: game.gameState,
+    stateValue: typeof game.gameState,
+    matches: {
+      welcome: game.matches('welcome'),
+      sequenceDisplay: game.matches('sequenceDisplay'),
+      sequenceTransition: game.matches('sequenceTransition'),
+      input: game.matches('input'),
+      paused: game.matches('paused'),
+      finished: game.matches('finished'),
+      error: game.matches('error'),
+    },
+  })
+
+  // Usar game.matches() que es más robusto para estados anidados
   if (game.matches('welcome')) {
     return <WelcomeScreen game={game} levelParam={levelParam} />
   }
 
-  if (
-    game.gameState === 'sequenceDisplay' ||
-    game.gameState.toString().includes('sequenceDisplay')
-  ) {
+  if (game.matches('sequenceDisplay')) {
     return <SequenceScreen game={game} />
   }
 
@@ -106,7 +123,11 @@ const GameRouter = ({ game, levelParam }: GameRouterProps) => {
     return <TransitionScreen game={game} />
   }
 
-  if (game.matches('input') || game.matches('paused')) {
+  if (game.matches('input')) {
+    return <InputScreen game={game} />
+  }
+
+  if (game.matches('paused')) {
     return <InputScreen game={game} />
   }
 
@@ -118,10 +139,22 @@ const GameRouter = ({ game, levelParam }: GameRouterProps) => {
     return <ErrorScreen game={game} />
   }
 
-  // Fallback por seguridad
-  return <ErrorScreen game={game} error='Estado de juego no reconocido' />
-}
+  // Fallback mejorado con más información de debug
+  console.error('🚨 Estado no reconocido:', {
+    gameState: game.gameState,
+    stateType: typeof game.gameState,
+    stateKeys: Object.keys(game.gameState || {}),
+    contextLevel: game.context.currentLevel,
+    contextRound: game.context.round,
+  })
 
+  return (
+    <ErrorScreen
+      game={game}
+      error={`Estado desconocido: ${JSON.stringify(game.gameState)}`}
+    />
+  )
+}
 // Welcome Screen Component
 interface WelcomeScreenProps {
   readonly game: ReturnType<typeof useMemoryGameMachine>
