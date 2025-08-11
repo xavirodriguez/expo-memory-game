@@ -1,13 +1,13 @@
+import { nreverseMachine } from '@/machines/nreverseMachine';
 import { GameConfig } from '@/types/memoryGame';
 import { useMachine } from '@xstate/react';
 import { useCallback } from 'react';
-import { memoryGameMachine } from './state/memoryGameMachine';
 export function useMemoryGameMachine(
   baseLength: number = 3,
   initialLevel: number = 1,
   config: Partial<GameConfig> = {}
 ) {
-  const [state, send] = useMachine(memoryGameMachine, {
+  const [state, send] = useMachine(nreverseMachine, {
     input: { baseLength, initialLevel, config },
   });
 

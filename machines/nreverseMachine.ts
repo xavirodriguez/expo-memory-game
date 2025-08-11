@@ -43,9 +43,6 @@ const createGameResult = (
     timeBonus,
   };
 };
-// hooks/state/memoryGameMachine.ts
-
-// ... funciones puras anteriores mantienen igual ...
 
 /**
  * Actor para mostrar secuencia completa con timer recursivo
@@ -142,9 +139,9 @@ const inputTimerLogic = fromCallback<GameEvent>(({ sendBack }) => {
   return () => clearInterval(interval);
 });
 
-export const memoryGameMachine = createMachine(
+export const nreverseMachine = createMachine(
   {
-    id: 'memoryGame',
+    id: 'nreverseMachine',
     types: {
       context: {} as GameContext,
       events: {} as GameEvent,
@@ -189,13 +186,13 @@ export const memoryGameMachine = createMachine(
                 target: 'complete',
               },
               PAUSE: {
-                target: '#memoryGame.paused',
+                target: '#nreverseMachine.paused',
               },
             },
           },
           complete: {
             always: {
-              target: '#memoryGame.sequenceTransition',
+              target: '#nreverseMachine.sequenceTransition',
             },
           },
         },
