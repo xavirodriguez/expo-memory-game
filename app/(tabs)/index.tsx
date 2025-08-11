@@ -24,10 +24,6 @@ export default function HomeScreen() {
       <ThemedView style={styles.stepContainer}>
         <ThemedText type='subtitle'>Section1</ThemedText>
         <Button
-          title={t('home.game1')}
-          onPress={() => router.push('/nreverse/nreverse')}
-        />
-        <Button
           title={t('xhome.game.level')}
           onPress={() =>
             router.push({

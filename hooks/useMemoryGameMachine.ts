@@ -1,5 +1,3 @@
-
-// hooks/useMemoryGameMachine.ts
 import { GameConfig } from '@/types/memoryGame';
 import { useMachine } from '@xstate/react';
 import { useCallback } from 'react';
@@ -15,6 +13,7 @@ export function useMemoryGameMachine(
 
   // Acciones con useCallback para estabilidad
   const startGame = useCallback(() => send({ type: 'START_GAME' }), [send]);
+  //TO-DO Error con startround
   const startRound = useCallback(() => send({ type: 'START_ROUND' }), [send]);
   const addDigit = useCallback((digit: number) => send({ type: 'ADD_DIGIT', digit }), [send]);
   const removeDigit = useCallback(() => send({ type: 'REMOVE_DIGIT' }), [send]);
@@ -47,7 +46,7 @@ export function useMemoryGameMachine(
 
   return {
     // Estado
-    gameState: state.value as string,
+    gameState: typeof state.value === 'string' ? state.value : 'welcome',
     context: state.context,
     
     // Datos computados

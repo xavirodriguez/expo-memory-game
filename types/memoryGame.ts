@@ -1,11 +1,27 @@
-export type GameState = 
-  | 'welcome'
-  | 'sequenceDisplay' 
-  | 'sequenceTransition'
-  | 'input'
-  | 'paused'
-  | 'finished'
-  | 'error';
+// types/memoryGame.ts
+export interface GameConfig {
+  readonly SEQUENCE_DISPLAY_TIME: number;
+  readonly SEQUENCE_TRANSITION_TIME: number;
+  readonly INPUT_TIME_LIMIT: number;
+  readonly MAX_LEVEL: number;
+  readonly POINTS_PER_LEVEL: number;
+}
+
+export type GameEvent =
+  | { type: 'START_GAME' }
+  | { type: 'DIGIT_SHOWN'; digitIndex: number }
+  | { type: 'SEQUENCE_COMPLETE' }
+  | { type: 'TRANSITION_COMPLETE' }
+  | { type: 'ADD_DIGIT'; digit: number }
+  | { type: 'REMOVE_DIGIT' }
+  | { type: 'SUBMIT_ANSWER' }
+  | { type: 'TICK' }
+  | { type: 'TIMEOUT' }
+  | { type: 'NEXT_ROUND' }
+  | { type: 'NEW_GAME' }
+  | { type: 'PAUSE' }
+  | { type: 'RESUME' }
+  | { type: 'ERROR'; error: string };
 
 export interface GameContext {
   readonly currentLevel: number;
@@ -21,14 +37,6 @@ export interface GameContext {
   readonly error?: string;
 }
 
-export interface GameConfig {
-  readonly SEQUENCE_DISPLAY_TIME: number;
-  readonly SEQUENCE_TRANSITION_TIME: number;
-  readonly INPUT_TIME_LIMIT: number;
-  readonly MAX_LEVEL: number;
-  readonly POINTS_PER_LEVEL: number;
-}
-
 export interface GameResult {
   readonly isCorrect: boolean;
   readonly correctSequence: readonly number[];
@@ -36,20 +44,3 @@ export interface GameResult {
   readonly roundScore: number;
   readonly timeBonus: number;
 }
-
-export type GameEvent =
-  | { type: 'START_GAME' }
-  | { type: 'START_ROUND' }
-  | { type: 'DIGIT_SHOWN' }
-  | { type: 'SEQUENCE_COMPLETE' }
-  | { type: 'TRANSITION_COMPLETE' }
-  | { type: 'ADD_DIGIT'; digit: number }
-  | { type: 'REMOVE_DIGIT' }
-  | { type: 'SUBMIT_ANSWER' }
-  | { type: 'PAUSE' }
-  | { type: 'RESUME' }
-  | { type: 'TICK' }
-  | { type: 'TIMEOUT' }
-  | { type: 'NEXT_ROUND' }
-  | { type: 'NEW_GAME' }
-  | { type: 'ERROR'; error: string };

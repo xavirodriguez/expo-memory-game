@@ -43,19 +43,90 @@ const createGameResult = (
     timeBonus,
   };
 };
+// hooks/state/memoryGameMachine.ts
 
-// Actor para timer de secuencia
-const sequenceTimerLogic = fromCallback<GameEvent>(({ sendBack, input }) => {
-  const timeout = setTimeout(() => {
-    sendBack({ type: 'DIGIT_SHOWN' });
-  }, (input as GameContext).config.SEQUENCE_DISPLAY_TIME);
+// ... funciones puras anteriores mantienen igual ...
 
-  return () => clearTimeout(timeout);
+/**
+ * Actor para mostrar secuencia completa con timer recursivo
+ * Maneja toda la secuencia internamente y notifica cada paso
+ */
+const sequenceTimerLogic = fromCallback<GameEvent, GameContext>(({ 
+  sendBack, 
+  input, 
+  receive 
+}) => {
+  const context = input;
+  let currentIndex = 0;
+  let timeoutId: NodeJS.Timeout | number | null = null;
+  let isCancelled = false;
+  
+  // Validación de entrada
+  if (!context.sequence || context.sequence.length === 0) {
+    sendBack({ type: 'ERROR', error: 'Empty sequence provided to timer' });
+    return () => {};
+  }
+  
+  const showNextDigit = (): void => {
+    if (isCancelled) {
+      return;
+    }
+    
+    // Verificar límites antes de continuar
+    if (currentIndex >= context.sequence.length) {
+      sendBack({ type: 'SEQUENCE_COMPLETE' });
+      return;
+    }
+    
+    // Notificar que se está mostrando el dígito actual
+    sendBack({ 
+      type: 'DIGIT_SHOWN', 
+      digitIndex: currentIndex 
+    });
+    
+    currentIndex++;
+    
+    // Programar siguiente dígito o completar secuencia
+    if (currentIndex < context.sequence.length) {
+      timeoutId = setTimeout(showNextDigit, context.config.SEQUENCE_DISPLAY_TIME);
+    } else {
+      // Esperar un último intervalo antes de completar
+      timeoutId = setTimeout(() => {
+        if (!isCancelled) {
+          sendBack({ type: 'SEQUENCE_COMPLETE' });
+        }
+      }, context.config.SEQUENCE_DISPLAY_TIME);
+    }
+  };
+  
+  // Manejar eventos externos (pause, resume, etc.)
+  receive((event) => {
+    if (event.type === 'PAUSE') {
+      isCancelled = true;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+    }
+  });
+  
+  // Iniciar la secuencia inmediatamente
+  showNextDigit();
+  
+  // Cleanup function
+  return (): void => {
+    isCancelled = true;
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      timeoutId = null;
+    }
+  };
 });
 
 // Actor para timer de transición
 const transitionTimerLogic = fromCallback<GameEvent>(({ sendBack, input }) => {
   const timeout = setTimeout(() => {
+    console.log('Tick');
     sendBack({ type: 'TRANSITION_COMPLETE' });
   }, (input as GameContext).config.SEQUENCE_TRANSITION_TIME);
 
@@ -101,9 +172,9 @@ export const memoryGameMachine = createMachine(
           },
         },
       },
-      
       sequenceDisplay: {
         invoke: {
+          id: 'sequenceTimer',
           src: sequenceTimerLogic,
           input: ({ context }) => context,
         },
@@ -111,32 +182,29 @@ export const memoryGameMachine = createMachine(
         states: {
           showing: {
             on: {
-              DIGIT_SHOWN: [
-                {
-                  guard: 'isLastDigit',
-                  target: 'complete',
-                  actions: 'resetDigitIndex',
-                },
-                {
-                  actions: 'nextDigit',
-                },
-              ],
+              DIGIT_SHOWN: {
+                actions: 'updateCurrentDigitIndex',
+              },
+              SEQUENCE_COMPLETE: {
+                target: 'complete',
+              },
+              PAUSE: {
+                target: '#memoryGame.paused',
+              },
             },
           },
           complete: {
-            on: {
-              SEQUENCE_COMPLETE: {
-                target: '#memoryGame.sequenceTransition',
-              },
+            always: {
+              target: '#memoryGame.sequenceTransition',
             },
-            entry: 'sendSequenceComplete',
           },
         },
-        entry: 'startSequenceDisplay',
+        entry: 'resetSequenceDisplay',
       },
 
       sequenceTransition: {
         invoke: {
+          id: 'transitionTimer',
           src: transitionTimerLogic,
           input: ({ context }) => context,
         },
@@ -147,9 +215,9 @@ export const memoryGameMachine = createMachine(
           },
         },
       },
-
       input: {
         invoke: {
+          id: 'inputTimer',
           src: inputTimerLogic,
         },
         on: {
@@ -158,7 +226,7 @@ export const memoryGameMachine = createMachine(
             actions: 'addDigit',
           },
           REMOVE_DIGIT: {
-            guard: 'canRemoveDigit', 
+            guard: 'canRemoveDigit',
             actions: 'removeDigit',
           },
           SUBMIT_ANSWER: {
@@ -172,7 +240,7 @@ export const memoryGameMachine = createMachine(
             {
               guard: 'isTimeUp',
               target: 'finished',
-              actions: ['calculateResultOnTimeout'],
+              actions: 'calculateResultOnTimeout',
             },
             {
               actions: 'decrementTime',
@@ -183,7 +251,6 @@ export const memoryGameMachine = createMachine(
             actions: 'calculateResultOnTimeout',
           },
         },
-        // Auto-submit cuando secuencia esté completa
         always: {
           guard: 'isInputComplete',
           target: 'finished',
@@ -249,14 +316,97 @@ export const memoryGameMachine = createMachine(
       initializeRound: assign({
         round: ({ context }) => context.round + 1,
         sequence: ({ context }) => generateSequence(
-          calculateSequenceLength(context.baseLength, context.currentLevel)
+        calculateSequenceLength(context.baseLength, context.currentLevel)
         ),
         userSequence: [],
-        currentDigitIndex: 0,
+        currentDigitIndex: -1, // Se actualizará con DIGIT_SHOWN
         timeLeft: ({ context }) => context.config.INPUT_TIME_LIMIT,
         lastResult: undefined,
-      }),
+        error: undefined,
+        }),
 
+        resetSequenceDisplay: assign({
+          currentDigitIndex: -1,
+        }),
+  
+        updateCurrentDigitIndex: assign({
+          currentDigitIndex: ({ event }) => {
+            if (event.type !== 'DIGIT_SHOWN') return -1;
+            return event.digitIndex;
+          },
+        }),
+  
+        initializeInput: assign({
+          timeLeft: ({ context }) => context.config.INPUT_TIME_LIMIT,
+          userSequence: [],
+          currentDigitIndex: -1, // Reset para fase de input
+        }),
+  
+        addDigit: assign({
+          userSequence: ({ context, event }) => {
+            if (event.type !== 'ADD_DIGIT') return context.userSequence;
+            return [...context.userSequence, event.digit];
+          },
+        }),
+  
+        removeDigit: assign({
+          userSequence: ({ context }) => context.userSequence.slice(0, -1),
+        }),
+  
+        decrementTime: assign({
+          timeLeft: ({ context }) => Math.max(0, context.timeLeft - 1),
+        }),
+  
+        calculateResult: assign({
+          lastResult: ({ context }) => createGameResult(
+            context.userSequence,
+            context.sequence,
+            context.timeLeft,
+            context.currentLevel,
+            context.config
+          ),
+        }),
+  
+        calculateResultOnTimeout: assign({
+          lastResult: ({ context }) => createGameResult(
+            context.userSequence,
+            context.sequence,
+            0, // No time bonus on timeout
+            context.currentLevel,
+            context.config
+          ),
+        }),
+  
+        updateScore: assign({
+          score: ({ context }) => {
+            const result = context.lastResult;
+            return result ? context.score + result.roundScore : context.score;
+          },
+        }),
+  
+        nextLevel: assign({
+          currentLevel: ({ context }) =>
+            Math.min(context.currentLevel + 1, context.config.MAX_LEVEL),
+        }),
+  
+        resetGame: assign(({ context }) => ({
+          currentLevel: 1,
+          score: 0,
+          round: 0,
+          sequence: [],
+          userSequence: [],
+          currentDigitIndex: -1,
+          timeLeft: context.config.INPUT_TIME_LIMIT,
+          lastResult: undefined,
+          error: undefined,
+        })),
+  
+        setError: assign({
+          error: ({ event }) => {
+            if (event.type !== 'ERROR') return undefined;
+            return event.error;
+          },
+        }),
       startSequenceDisplay: assign({
         currentDigitIndex: 0,
       }),
@@ -274,97 +424,23 @@ export const memoryGameMachine = createMachine(
         setTimeout(() => self.send({ type: 'SEQUENCE_COMPLETE' }), 0);
       },
 
-      initializeInput: assign({
-        timeLeft: ({ context }) => context.config.INPUT_TIME_LIMIT,
-        userSequence: [],
-      }),
-
-      addDigit: assign({
-        userSequence: ({ context, event }) => {
-          if (event.type !== 'ADD_DIGIT') return context.userSequence;
-          return [...context.userSequence, event.digit];
-        },
-      }),
-
-      removeDigit: assign({
-        userSequence: ({ context }) => context.userSequence.slice(0, -1),
-      }),
-
-      decrementTime: assign({
-        timeLeft: ({ context }) => Math.max(0, context.timeLeft - 1),
-      }),
-
-      calculateResult: assign({
-        lastResult: ({ context }) => createGameResult(
-          context.userSequence,
-          context.sequence,
-          context.timeLeft,
-          context.currentLevel,
-          context.config
-        ),
-      }),
-
-      calculateResultOnTimeout: assign({
-        lastResult: ({ context }) => createGameResult(
-          context.userSequence,
-          context.sequence,
-          0, // No time bonus
-          context.currentLevel,
-          context.config
-        ),
-      }),
-
-      updateScore: assign({
-        score: ({ context }) => {
-          const result = context.lastResult;
-          return result ? context.score + result.roundScore : context.score;
-        },
-      }),
-
-      nextLevel: assign({
-        currentLevel: ({ context }) => 
-          Math.min(context.currentLevel + 1, context.config.MAX_LEVEL),
-      }),
-
-      resetGame: assign(({ context }) => ({
-        currentLevel: 1,
-        score: 0,
-        round: 0,
-        sequence: [],
-        userSequence: [],
-        currentDigitIndex: -1,
-        timeLeft: context.config.INPUT_TIME_LIMIT,
-        lastResult: undefined,
-        error: undefined,
-      })),
-
-      setError: assign({
-        error: ({ event }) => {
-          if (event.type !== 'ERROR') return undefined;
-          return event.error;
-        },
-      }),
     },
-
     guards: {
-      isLastDigit: ({ context }) => 
-        context.currentDigitIndex >= context.sequence.length - 1,
-
-      canAddDigit: ({ context, event }) => 
-        event.type === 'ADD_DIGIT' && 
+      canAddDigit: ({ context, event }) =>
+        event.type === 'ADD_DIGIT' &&
         context.userSequence.length < context.sequence.length,
 
-      canRemoveDigit: ({ context }) => 
+      canRemoveDigit: ({ context }) =>
         context.userSequence.length > 0,
 
-      isTimeUp: ({ context }) => 
+      isTimeUp: ({ context }) =>
         context.timeLeft <= 1,
 
-      isInputComplete: ({ context }) => 
-        context.userSequence.length === context.sequence.length && 
+      isInputComplete: ({ context }) =>
+        context.userSequence.length === context.sequence.length &&
         context.userSequence.length > 0,
 
-      wasAnswerCorrect: ({ context }) => 
+      wasAnswerCorrect: ({ context }) =>
         context.lastResult?.isCorrect ?? false,
     },
   }
