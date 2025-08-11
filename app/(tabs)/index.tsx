@@ -20,7 +20,7 @@ export default function HomeScreen() {
       <ThemedView style={styles.titleContainer}>
         <ThemedText type='title'>{t('home.welcome')}</ThemedText>
       </ThemedView>
-
+      <p className={`p-4 bg-blue-200`}>prueba tailwind</p>
       <ThemedView style={styles.stepContainer}>
         <ThemedText type='subtitle'>Section1</ThemedText>
         <Button
