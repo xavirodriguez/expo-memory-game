@@ -17,7 +17,7 @@ export default function InputScreen({ game }: InputScreenProps) {
   }, [game.userSequence])
 
   const handleInputChange = useCallback(
-    text => {
+    (text: string) => {
       const numericText = text.replace(/[^0-9]/g, '')
       if (numericText.length <= game.sequence.length) {
         const newSequence = numericText.split('').map(Number)

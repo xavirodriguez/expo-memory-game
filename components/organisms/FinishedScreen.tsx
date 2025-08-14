@@ -11,15 +11,7 @@ const FinishedScreen = ({
   const { t } = useTranslation()
   const result = game.lastResult
   if (!result) return <ErrorScreen game={game} error={t('errors.noResult')} />
-  return (
-    <ResultPanel
-      game={game}
-      result={result}
-      t={t}
-      onNext={game.nextRound}
-      onNewGame={game.newGame}
-    />
-  )
+  return <ResultPanel result={result} t={t} />
 }
 
 export default FinishedScreen
