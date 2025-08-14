@@ -1,6 +1,13 @@
 import { ThemedText } from '@/components/ThemedText'
+type UserSequenceDisplayProps = {
+  userSequence: readonly number[]
+  placeholder?: string
+}
 
-export default function UserSequenceDisplay({ userSequence, placeholder }) {
+export default function UserSequenceDisplay({
+  userSequence,
+  placeholder,
+}: UserSequenceDisplayProps) {
   return (
     <ThemedText
       type='default'

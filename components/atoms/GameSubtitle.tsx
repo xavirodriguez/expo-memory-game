@@ -1,6 +1,15 @@
 import { ThemedText } from '@/components/ThemedText'
-
-export default function GameSubtitle({ children, className = '', ...props }) {
+import { ReactNode } from 'react'
+type GameSubtitleProps = {
+  children: ReactNode
+  className?: string
+  [key: string]: any
+}
+export default function GameSubtitle({
+  children,
+  className = '',
+  ...props
+}: GameSubtitleProps) {
   return (
     <ThemedText
       type='subtitle'

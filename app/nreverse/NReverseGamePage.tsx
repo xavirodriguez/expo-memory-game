@@ -1,10 +1,10 @@
 import ErrorBoundary from '@/components/ErrorBoundary'
+import GameRouter from '@/components/organisms/GameRouter'
 import { useMemoryGameMachine } from '@/hooks/useMemoryGameMachine'
 import { useLocalSearchParams } from 'expo-router'
 import React, { useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Alert } from 'react-native'
-import GameRouter from './organisms/GameRouter'
 
 const parseLevelParam = (levelParam: string | string[] | undefined): number => {
   if (!levelParam) return 1

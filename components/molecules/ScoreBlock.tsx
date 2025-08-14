@@ -1,7 +1,18 @@
 import { ThemedText } from '@/components/ThemedText'
 import { ThemedView } from '@/components/ThemedView'
+type ScoreBlockProps = {
+  level: number
+  score: number
+  round: number
+  t: (key: string, options?: any) => string
+}
 
-export default function ScoreBlock({ level, score, round, t }) {
+export default function ScoreBlock({
+  level,
+  score,
+  round,
+  t,
+}: ScoreBlockProps) {
   return (
     <ThemedView className='bg-overlay-light p-3 rounded-lg mt-4'>
       <ThemedText type='default' className='text-center'>

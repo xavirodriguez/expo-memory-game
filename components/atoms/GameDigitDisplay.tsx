@@ -1,7 +1,13 @@
 import { ThemedText } from '@/components/ThemedText'
 import { ThemedView } from '@/components/ThemedView'
-
-export default function GameDigitDisplay({ digit, preparingText }) {
+type GameDigitDisplayProps = {
+  digit: number | null
+  preparingText?: string
+}
+export default function GameDigitDisplay({
+  digit,
+  preparingText,
+}: GameDigitDisplayProps) {
   return (
     <ThemedView className='w-digit h-digit justify-center items-center rounded-digit bg-overlay-blue my-10 shadow'>
       {digit >= 0 ? (

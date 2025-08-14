@@ -1,6 +1,10 @@
 import { ThemedText } from '@/components/ThemedText'
+type UserSequenceProps = {
+  sequence: readonly number[]
+  t: (key: string, options?: any) => string
+}
 
-export default function UserSequence({ sequence, t }) {
+export default function UserSequence({ sequence, t }: UserSequenceProps) {
   return (
     <ThemedText
       type='default'

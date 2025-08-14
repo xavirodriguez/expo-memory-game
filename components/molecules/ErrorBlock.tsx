@@ -1,8 +1,17 @@
 import { ThemedText } from '@/components/ThemedText'
 import { ThemedView } from '@/components/ThemedView'
 import GameButton from '../atoms/GameButton'
+type ErrorBlockProps = {
+  errorMessage: string
+  onRestart: () => void
+  t: (key: string, options?: any) => string
+}
 
-export default function ErrorBlock({ errorMessage, onRestart, t }) {
+export default function ErrorBlock({
+  errorMessage,
+  onRestart,
+  t,
+}: ErrorBlockProps) {
   return (
     <ThemedView className='flex-1 justify-center items-center p-5'>
       <ThemedText type='title' className='text-error'>

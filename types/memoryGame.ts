@@ -11,6 +11,7 @@ export type GameEvent =
   | { type: 'START_GAME' }
   | { type: 'DIGIT_SHOWN'; digitIndex: number }
   | { type: 'SEQUENCE_COMPLETE' }
+  | { type: 'START_ROUND' } 
   | { type: 'TRANSITION_COMPLETE' }
   | { type: 'ADD_DIGIT'; digit: number }
   | { type: 'REMOVE_DIGIT' }
