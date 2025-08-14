@@ -1,7 +1,20 @@
 import { ThemedText } from '@/components/ThemedText'
 import { ThemedView } from '@/components/ThemedView'
-
-export default function ResultPanel({ result, t }) {
+interface ResultPanelProps {
+  result:
+    | {
+        isCorrect: boolean
+        roundScore?: number
+        timeBonus?: number
+        correctSequence?: readonly number[]
+        userInput?: readonly number[]
+        [key: string]: any
+      }
+    | null
+    | undefined
+  t: (key: string, options?: any) => string
+}
+export default function ResultPanel({ result, t }: ResultPanelProps) {
   const isCorrect = result?.isCorrect
   return (
     <ThemedView className='bg-overlay-medium p-4 rounded-lg my-5 space-y-2'>

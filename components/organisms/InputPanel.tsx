@@ -1,8 +1,19 @@
 import { ThemedView } from '@/components/ThemedView'
-import GameButton from '../atoms/GameButton'
-import GameInput from '../atoms/GameInput'
-import UserSequence from '../molecules/UserSequence'
-
+import GameButton from '@/components/atoms/GameButton'
+import GameInput from '@/components/atoms/GameInput'
+import UserSequence from '@/components/molecules/UserSequence'
+interface InputPanelProps {
+  inputValue: string
+  onInputChange: (value: string) => void
+  sequenceLength: number
+  t: (key: string, options?: any) => string
+  userSequence: number[]
+  originalLength: number
+  paused: boolean
+  onPause: () => void
+  onSubmit: () => void
+  canSubmit: boolean
+}
 export default function InputPanel({
   inputValue,
   onInputChange,
@@ -14,7 +25,7 @@ export default function InputPanel({
   onPause,
   onSubmit,
   canSubmit,
-}) {
+}: InputPanelProps) {
   return (
     <ThemedView className='my-8'>
       <GameInput

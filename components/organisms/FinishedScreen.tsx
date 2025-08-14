@@ -1,7 +1,7 @@
+import ResultPanel from '@/components/organisms/ResultPanel'
 import { useMemoryGameMachine } from '@/hooks/useMemoryGameMachine'
 import { useTranslation } from 'react-i18next'
 import ErrorScreen from './ErrorScreen'
-import ResultPanel from './organisms/ResultPanel'
 
 const FinishedScreen = ({
   game,

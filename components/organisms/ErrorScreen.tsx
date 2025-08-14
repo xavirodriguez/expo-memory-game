@@ -1,6 +1,6 @@
+import ErrorBlock from '@/components/molecules/ErrorBlock'
 import { useMemoryGameMachine } from '@/hooks/useMemoryGameMachine'
 import { useTranslation } from 'react-i18next'
-import ErrorBlock from './molecules/ErrorBlock'
 
 const ErrorScreen = ({
   game,

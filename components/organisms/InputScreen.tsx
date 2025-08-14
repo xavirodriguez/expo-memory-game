@@ -1,11 +1,15 @@
 import { ThemedView } from '@/components/ThemedView'
+import ScoreBlock from '@/components/molecules/ScoreBlock'
+import TimerBlock from '@/components/molecules/TimerBlock'
+import InputPanel from '@/components/organisms/InputPanel'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import ScoreBlock from './molecules/ScoreBlock'
-import TimerBlock from './molecules/TimerBlock'
-import InputPanel from './organisms/InputPanel'
-
-export default function InputScreen({ game }) {
+interface InputScreenProps {
+  game: ReturnType<
+    typeof import('@/hooks/useMemoryGameMachine').useMemoryGameMachine
+  >
+}
+export default function InputScreen({ game }: InputScreenProps) {
   const { t } = useTranslation()
   const [inputValue, setInputValue] = useState('')
   useEffect(() => {

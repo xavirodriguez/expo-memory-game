@@ -1,8 +1,8 @@
+import GameSubtitle from '@/components/atoms/GameSubtitle'
+import GameTitle from '@/components/atoms/GameTitle'
 import { ThemedView } from '@/components/ThemedView'
 import { useMemoryGameMachine } from '@/hooks/useMemoryGameMachine'
 import { useTranslation } from 'react-i18next'
-import GameSubtitle from './atoms/GameSubtitle'
-import GameTitle from './atoms/GameTitle'
 
 interface TransitionScreenProps {
   game: ReturnType<typeof useMemoryGameMachine>
