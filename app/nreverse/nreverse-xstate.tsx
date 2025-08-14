@@ -23,6 +23,7 @@ const parseLevelParam = (levelParam: string | string[] | undefined): number => {
 }
 
 export default function NReverseXStateScreen() {
+  const { t } = useTranslation()
   const params = useLocalSearchParams()
   const initialLevel = parseLevelParam(params.level)
 
@@ -35,26 +36,32 @@ export default function NReverseXStateScreen() {
   const handleGameComplete = useCallback(() => {
     const result = game.lastResult
     if (!result) {
-      console.warn('No game result available')
+      console.warn(t('errors.noResult'))
       return
     }
     if (result.isCorrect) {
       Alert.alert(
-        '¡Correcto!',
-        `Puntuación: ${result.roundScore}\nBonus de tiempo: ${result.timeBonus}`,
-        [{ text: 'Siguiente Ronda', onPress: game.nextRound }],
+        t('alerts.correctTitle'),
+        t('alerts.correctMessage', {
+          roundScore: result.roundScore,
+          timeBonus: result.timeBonus,
+        }),
+        [{ text: t('alerts.nextRound'), onPress: game.nextRound }],
       )
     } else {
       Alert.alert(
-        'Incorrecto',
-        `Secuencia correcta: ${result.correctSequence.join(' ')}\nTu respuesta: ${result.userInput.join(' ')}`,
+        t('alerts.incorrectTitle'),
+        t('alerts.incorrectMessage', {
+          correctSequence: result.correctSequence.join(' '),
+          userInput: result.userInput.join(' '),
+        }),
         [
-          { text: 'Reintentar', onPress: game.nextRound },
-          { text: 'Nuevo Juego', onPress: game.newGame },
+          { text: t('alerts.retry'), onPress: game.nextRound },
+          { text: t('alerts.newGame'), onPress: game.newGame },
         ],
       )
     }
-  }, [game.lastResult, game.nextRound, game.newGame])
+  }, [game.lastResult, game.nextRound, game.newGame, t])
 
   useEffect(() => {
     if (game.matches('finished') && game.lastResult) {
@@ -66,7 +73,7 @@ export default function NReverseXStateScreen() {
   return (
     <ErrorBoundary
       onError={(error, errorInfo, errorId) => {
-        console.error(`Game Error [${errorId}]:`, error, errorInfo)
+        console.error(t('errors.gameError', { errorId }), error, errorInfo)
       }}>
       <GameRouter game={game} levelParam={params.level} />
     </ErrorBoundary>
@@ -79,6 +86,7 @@ interface GameRouterProps {
 }
 
 const GameRouter = ({ game, levelParam }: GameRouterProps) => {
+  const { t } = useTranslation()
   if (game.matches('welcome'))
     return <WelcomeScreen game={game} levelParam={levelParam} />
   if (game.matches('sequenceDisplay')) return <SequenceScreen game={game} />
@@ -91,7 +99,9 @@ const GameRouter = ({ game, levelParam }: GameRouterProps) => {
   return (
     <ErrorScreen
       game={game}
-      error={`Estado desconocido: ${JSON.stringify(game.gameState)}`}
+      error={t('errors.unknownState', {
+        state: JSON.stringify(game.gameState),
+      })}
     />
   )
 }
@@ -116,30 +126,33 @@ const WelcomeScreen = ({
       {levelParam && (
         <ThemedView className='bg-overlay-blue-light p-3 rounded-lg mb-4'>
           <ThemedText type='subtitle'>
-            🎮 Iniciando juego en nivel:{' '}
-            {Array.isArray(levelParam) ? levelParam[0] : levelParam}
+            {t('welcome.startLevel', {
+              level: Array.isArray(levelParam) ? levelParam[0] : levelParam,
+            })}
           </ThemedText>
         </ThemedView>
       )}
       <ThemedView className='items-center gap-2 mb-4'>
-        <ThemedText type='title'>🧠 ¡Mejora tu memoria!</ThemedText>
+        <ThemedText type='title'>{t('welcome.title')}</ThemedText>
         <ThemedText type='subtitle' className='text-sm italic opacity-70'>
-          Versión XState Machine
+          {t('welcome.subtitle')}
         </ThemedText>
       </ThemedView>
       <ThemedView className='gap-2 mb-4'>
-        <ThemedText>{t('welcome')}</ThemedText>
+        <ThemedText>{t('welcome.intro')}</ThemedText>
         <ThemedText>{t('nreverse.description')}</ThemedText>
         <ThemedText type='defaultSemiBold'>
-          📊 Nivel actual: {game.currentLevel} | Longitud:{' '}
-          {game.currentSequenceLength}
+          {t('game.levelLength', {
+            level: game.currentLevel,
+            length: game.currentSequenceLength,
+          })}
         </ThemedText>
         <ThemedText type='default'>
-          🏆 Puntuación: {game.score} | 🎯 Ronda: {game.round}
+          {t('game.scoreRound', { score: game.score, round: game.round })}
         </ThemedText>
       </ThemedView>
       <ThemedView className='mt-5'>
-        <Button onPress={game.startGame}>🚀 Comenzar Juego</Button>
+        <Button onPress={game.startGame}>{t('buttons.startGame')}</Button>
       </ThemedView>
     </ParallaxScrollView>
   )
@@ -149,61 +162,71 @@ const SequenceScreen = ({
   game,
 }: {
   game: ReturnType<typeof useMemoryGameMachine>
-}) => (
-  <ThemedView className='flex-1 justify-center items-center p-5'>
-    <ThemedText type='title' className='text-center'>
-      🎯 Memoriza la secuencia
-    </ThemedText>
-    <ThemedText type='subtitle' className='text-center'>
-      {game.progress.sequenceProgress}
-    </ThemedText>
-    <ThemedView className='w-digit h-digit justify-center items-center rounded-digit bg-overlay-blue my-10 shadow'>
-      {game.currentDigit >= 0 ? (
-        <ThemedText type='title' className='text-digit-lg font-bold'>
-          {game.currentDigit}
-        </ThemedText>
-      ) : (
-        <ThemedText type='subtitle' className='text-digit-sm opacity-70'>
-          ⏳ Preparando...
-        </ThemedText>
-      )}
-    </ThemedView>
-    <ThemedView className='bg-overlay-light p-3 rounded-lg mt-4'>
-      <ThemedText type='default' className='text-center'>
-        📊 Nivel: {game.currentLevel} | 🎯 Ronda: {game.round}
+}) => {
+  const { t } = useTranslation()
+  return (
+    <ThemedView className='flex-1 justify-center items-center p-5'>
+      <ThemedText type='title' className='text-center'>
+        {t('sequence.title')}
       </ThemedText>
-      <ThemedText type='default' className='text-center'>
-        🏆 Puntuación: {game.score}
+      <ThemedText type='subtitle' className='text-center'>
+        {game.progress.sequenceProgress}
       </ThemedText>
+      <ThemedView className='w-digit h-digit justify-center items-center rounded-digit bg-overlay-blue my-10 shadow'>
+        {game.currentDigit >= 0 ? (
+          <ThemedText type='title' className='text-digit-lg font-bold'>
+            {game.currentDigit}
+          </ThemedText>
+        ) : (
+          <ThemedText type='subtitle' className='text-digit-sm opacity-70'>
+            {t('sequence.preparing')}
+          </ThemedText>
+        )}
+      </ThemedView>
+      <ThemedView className='bg-overlay-light p-3 rounded-lg mt-4'>
+        <ThemedText type='default' className='text-center'>
+          {t('game.levelRound', {
+            level: game.currentLevel,
+            round: game.round,
+          })}
+        </ThemedText>
+        <ThemedText type='default' className='text-center'>
+          {t('game.score', { score: game.score })}
+        </ThemedText>
+      </ThemedView>
     </ThemedView>
-  </ThemedView>
-)
+  )
+}
 
 const TransitionScreen = ({
   game,
 }: {
   game: ReturnType<typeof useMemoryGameMachine>
-}) => (
-  <ThemedView className='flex-1 justify-center items-center p-5'>
-    <ThemedText type='title' className='text-center'>
-      🔄 Preparando entrada...
-    </ThemedText>
-    <ThemedView className='w-pulse h-pulse justify-center items-center rounded-pulse bg-overlay-pulse my-8'>
-      <ThemedText type='subtitle' className='text-pulse'>
-        ⚡
+}) => {
+  const { t } = useTranslation()
+  return (
+    <ThemedView className='flex-1 justify-center items-center p-5'>
+      <ThemedText type='title' className='text-center'>
+        {t('transition.preparingInput')}
+      </ThemedText>
+      <ThemedView className='w-pulse h-pulse justify-center items-center rounded-pulse bg-overlay-pulse my-8'>
+        <ThemedText type='subtitle' className='text-pulse'>
+          ⚡
+        </ThemedText>
+      </ThemedView>
+      <ThemedText type='default' className='text-center'>
+        {t('transition.instruction')}
       </ThemedText>
     </ThemedView>
-    <ThemedText type='default' className='text-center'>
-      Introduce la secuencia en orden inverso
-    </ThemedText>
-  </ThemedView>
-)
+  )
+}
 
 const InputScreen = ({
   game,
 }: {
   game: ReturnType<typeof useMemoryGameMachine>
 }) => {
+  const { t } = useTranslation()
   const [inputValue, setInputValue] = useState('')
   useEffect(() => {
     setInputValue(game.userSequence.join(''))
@@ -243,19 +266,19 @@ const InputScreen = ({
         <ThemedText
           type='title'
           className={`text-2xl font-bold ${game.timeLeft <= 10 ? 'text-danger' : ''}`}>
-          ⏰ Tiempo: {game.timeLeft}s
+          {t('input.timeLeft', { seconds: game.timeLeft })}
         </ThemedText>
         {game.isPaused && (
           <ThemedText type='subtitle' className='text-warning mt-2'>
-            ⏸️ PAUSADO
+            {t('input.paused')}
           </ThemedText>
         )}
       </ThemedView>
       <ThemedText type='subtitle' className='text-center'>
-        🔄 Ingresa la secuencia en orden inverso
+        {t('input.instruction')}
       </ThemedText>
       <ThemedText type='default' className='text-center'>
-        📊 Progreso: {game.progress.inputProgress}
+        {t('input.progress', { progress: game.progress.inputProgress })}
       </ThemedText>
       <ThemedView className='my-8'>
         <TextInput
@@ -264,7 +287,7 @@ const InputScreen = ({
           className='border-2 border-gray-300 rounded-lg p-3 text-lg text-center mb-4 bg-white'
           keyboardType='numeric'
           maxLength={game.sequence.length}
-          placeholder={`Introduce ${game.sequence.length} dígitos`}
+          placeholder={t('input.placeholder', { length: game.sequence.length })}
           placeholderTextColor='#666'
           autoFocus
           editable={!game.isPaused}
@@ -272,25 +295,30 @@ const InputScreen = ({
         <ThemedText
           type='default'
           className='text-center text-base tracking-seq mb-2'>
-          📝 Tu secuencia: {game.userSequence.join(' ') || '---'}
+          {t('input.userSequence', {
+            sequence: game.userSequence.join(' ') || '---',
+          })}
         </ThemedText>
         <ThemedText type='default' className='text-center text-sm opacity-60'>
-          💡 Secuencia original tenía {game.sequence.length} dígitos
+          {t('input.originalLength', { length: game.sequence.length })}
         </ThemedText>
       </ThemedView>
       <ThemedView className='flex-row justify-around my-5 gap-4'>
         <Button onPress={game.togglePause} disabled={game.matches('finished')}>
-          {game.isPaused ? '▶️ Reanudar' : '⏸️ Pausar'}
+          {game.isPaused ? t('buttons.resume') : t('buttons.pause')}
         </Button>
         <Button
           onPress={handleSubmit}
           disabled={!game.isSequenceComplete || game.isPaused}>
-          ✅ Confirmar
+          {t('buttons.confirm')}
         </Button>
       </ThemedView>
       <ThemedView className='bg-overlay-light p-3 rounded-lg mt-4'>
         <ThemedText type='default' className='text-center'>
-          📊 Nivel: {game.currentLevel} | 🏆 Puntuación: {game.score}
+          {t('game.levelScore', {
+            level: game.currentLevel,
+            score: game.score,
+          })}
         </ThemedText>
       </ThemedView>
     </ThemedView>
@@ -302,49 +330,53 @@ const FinishedScreen = ({
 }: {
   game: ReturnType<typeof useMemoryGameMachine>
 }) => {
+  const { t } = useTranslation()
   const result = game.lastResult
-  if (!result)
-    return <ErrorScreen game={game} error='No hay resultado disponible' />
+  if (!result) return <ErrorScreen game={game} error={t('errors.noResult')} />
   const isCorrect = result.isCorrect
   return (
     <ThemedView className='flex-1 p-5 justify-center'>
       <ThemedText
         type='title'
         className={`text-center ${isCorrect ? 'text-success' : 'text-error'}`}>
-        {isCorrect ? '🎉 ¡Correcto!' : '❌ Incorrecto'}
+        {isCorrect ? t('finished.correct') : t('finished.incorrect')}
       </ThemedText>
       <ThemedView className='bg-overlay-medium p-4 rounded-lg my-5 space-y-2'>
-        <ThemedText type='defaultSemiBold'>
-          📊 Resultados de la ronda:
+        <ThemedText type='defaultSemiBold'>{t('finished.results')}</ThemedText>
+        <ThemedText type='default'>
+          {t('finished.originalSequence', {
+            sequence: game.sequence.join(' '),
+          })}
         </ThemedText>
         <ThemedText type='default'>
-          🔢 Secuencia original: {game.sequence.join(' ')}
+          {t('finished.correctSequence', {
+            sequence: result.correctSequence.join(' '),
+          })}
         </ThemedText>
         <ThemedText type='default'>
-          ✅ Secuencia correcta (inversa): {result.correctSequence.join(' ')}
-        </ThemedText>
-        <ThemedText type='default'>
-          📝 Tu respuesta: {result.userInput.join(' ') || 'Sin respuesta'}
+          {t('finished.userInput', {
+            sequence: result.userInput.join(' ') || t('finished.noAnswer'),
+          })}
         </ThemedText>
         {isCorrect && (
           <>
             <ThemedText type='default' className='text-bonus font-medium'>
-              🏆 Puntos de ronda: {result.roundScore}
+              {t('finished.roundPoints', { points: result.roundScore })}
             </ThemedText>
             <ThemedText type='default' className='text-bonus font-medium'>
-              ⚡ Bonus de tiempo: {result.timeBonus}
+              {t('finished.timeBonus', { bonus: result.timeBonus })}
             </ThemedText>
           </>
         )}
       </ThemedView>
       <ThemedText type='subtitle' className='text-center'>
-        🏆 Puntuación total: {game.score}
+        {t('finished.totalScore', { score: game.score })}
       </ThemedText>
       <ThemedView className='flex-row justify-around my-5 gap-4'>
         <Button onPress={game.nextRound}>
-          {isCorrect ? '🎯 Siguiente Ronda' : '🔄 Reintentar'}
+          {isCorrect ? t('buttons.nextRound') : t('buttons.retry')}
         </Button>
-        <Button onPress={game.newGame}>🆕 Nuevo Juego</Button>
+        <Button onPress={game.newGame}>{t('buttons.newGame')}</Button>
       </ThemedView>
     </ThemedView>
   )
@@ -357,15 +389,16 @@ const ErrorScreen = ({
   game: ReturnType<typeof useMemoryGameMachine>
   error?: string
 }) => {
-  const errorMessage = error || game.context.error || 'Error inesperado'
+  const { t } = useTranslation()
+  const errorMessage = error || game.context.error || t('errors.unexpected')
   return (
     <ThemedView className='flex-1 justify-center items-center p-5'>
       <ThemedText type='title' className='text-error'>
-        ⚠️ Error
+        {t('errors.title')}
       </ThemedText>
       <ThemedText className='text-center'>{errorMessage}</ThemedText>
       <ThemedView className='mt-5'>
-        <Button onPress={game.newGame}>🔄 Reiniciar Juego</Button>
+        <Button onPress={game.newGame}>{t('buttons.restart')}</Button>
       </ThemedView>
     </ThemedView>
   )

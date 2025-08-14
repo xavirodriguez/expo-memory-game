@@ -1,6 +1,6 @@
 {
-    "welcome" : "ENwelcome",
-    "nreverse": {
-        "description" : "ENMira atentamente los números que aparecerán en pantalla, memorízalos, y luego, escribe la secuencia de atrás hacia adelante. Cada nivel será un poco más difícil que el anterior. ¿Estás listo para intentarlo?"
-    }
+  "welcome": "ENwelcome",
+  "nreverse": {
+    "description": "ENMira atentamente los números que aparecerán en pantalla, memorízalos, y luego, escribe la secuencia de atrás hacia adelante. Cada nivel será un poco más difícil que el anterior. ¿Estás listo para intentarlo?"
+  }
 }
