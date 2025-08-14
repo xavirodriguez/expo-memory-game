@@ -9,20 +9,16 @@ import { Image } from 'expo-image'
 import { useLocalSearchParams } from 'expo-router'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Alert, StyleSheet, TextInput } from 'react-native'
+import { Alert, TextInput } from 'react-native'
 
-// Tipos para parámetros de ruta seguros
 interface RouteParams {
   readonly level?: string | string[]
 }
 
-// Función pura para parsear level de forma segura
 const parseLevelParam = (levelParam: string | string[] | undefined): number => {
   if (!levelParam) return 1
-
   const levelStr = Array.isArray(levelParam) ? levelParam[0] : levelParam
   const parsed = parseInt(levelStr, 10)
-
   return Number.isInteger(parsed) && parsed > 0 ? parsed : 1
 }
 
@@ -36,15 +32,12 @@ export default function NReverseXStateScreen() {
     SEQUENCE_TRANSITION_TIME: 300,
   })
 
-  // Handler para completar el juego - función pura
   const handleGameComplete = useCallback(() => {
     const result = game.lastResult
-
     if (!result) {
       console.warn('No game result available')
       return
     }
-
     if (result.isCorrect) {
       Alert.alert(
         '¡Correcto!',
@@ -63,16 +56,13 @@ export default function NReverseXStateScreen() {
     }
   }, [game.lastResult, game.nextRound, game.newGame])
 
-  // Efecto para manejar completación del juego
   useEffect(() => {
     if (game.matches('finished') && game.lastResult) {
-      // Pequeño delay para que la UI se actualice
       const timer = setTimeout(handleGameComplete, 100)
       return () => clearTimeout(timer)
     }
   }, [game.matches('finished'), game.lastResult, handleGameComplete])
 
-  // Wrapper con ErrorBoundary
   return (
     <ErrorBoundary
       onError={(error, errorInfo, errorId) => {
@@ -83,71 +73,21 @@ export default function NReverseXStateScreen() {
   )
 }
 
-// Router de componentes basado en estado
-interface GameRouterProps {
-  readonly game: ReturnType<typeof useMemoryGameMachine>
-  readonly levelParam: string | string[] | undefined
-}
-// Router de componentes basado en estado - VERSIÓN CORREGIDA
 interface GameRouterProps {
   readonly game: ReturnType<typeof useMemoryGameMachine>
   readonly levelParam: string | string[] | undefined
 }
 
 const GameRouter = ({ game, levelParam }: GameRouterProps) => {
-  // DEBUG: Agregar logging para diagnosticar el estado actual
-  console.log('🔍 GameRouter Debug:', {
-    gameState: game.gameState,
-    stateValue: typeof game.gameState,
-    matches: {
-      welcome: game.matches('welcome'),
-      sequenceDisplay: game.matches('sequenceDisplay'),
-      sequenceTransition: game.matches('sequenceTransition'),
-      input: game.matches('input'),
-      paused: game.matches('paused'),
-      finished: game.matches('finished'),
-      error: game.matches('error'),
-    },
-  })
-
-  // Usar game.matches() que es más robusto para estados anidados
-  if (game.matches('welcome')) {
+  if (game.matches('welcome'))
     return <WelcomeScreen game={game} levelParam={levelParam} />
-  }
-
-  if (game.matches('sequenceDisplay')) {
-    return <SequenceScreen game={game} />
-  }
-
-  if (game.matches('sequenceTransition')) {
+  if (game.matches('sequenceDisplay')) return <SequenceScreen game={game} />
+  if (game.matches('sequenceTransition'))
     return <TransitionScreen game={game} />
-  }
-
-  if (game.matches('input')) {
+  if (game.matches('input') || game.matches('paused'))
     return <InputScreen game={game} />
-  }
-
-  if (game.matches('paused')) {
-    return <InputScreen game={game} />
-  }
-
-  if (game.matches('finished')) {
-    return <FinishedScreen game={game} />
-  }
-
-  if (game.matches('error')) {
-    return <ErrorScreen game={game} />
-  }
-
-  // Fallback mejorado con más información de debug
-  console.error('🚨 Estado no reconocido:', {
-    gameState: game.gameState,
-    stateType: typeof game.gameState,
-    stateKeys: Object.keys(game.gameState || {}),
-    contextLevel: game.context.currentLevel,
-    contextRound: game.context.round,
-  })
-
+  if (game.matches('finished')) return <FinishedScreen game={game} />
+  if (game.matches('error')) return <ErrorScreen game={game} />
   return (
     <ErrorScreen
       game={game}
@@ -155,41 +95,39 @@ const GameRouter = ({ game, levelParam }: GameRouterProps) => {
     />
   )
 }
-// Welcome Screen Component
-interface WelcomeScreenProps {
-  readonly game: ReturnType<typeof useMemoryGameMachine>
-  readonly levelParam: string | string[] | undefined
-}
 
-const WelcomeScreen = ({ game, levelParam }: WelcomeScreenProps) => {
+const WelcomeScreen = ({
+  game,
+  levelParam,
+}: {
+  game: ReturnType<typeof useMemoryGameMachine>
+  levelParam: string | string[] | undefined
+}) => {
   const { t } = useTranslation()
-
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
       headerImage={
         <Image
           source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+          className='h-logo-h w-logo-w absolute bottom-0 left-0'
         />
       }>
       {levelParam && (
-        <ThemedView style={styles.levelIndicator}>
+        <ThemedView className='bg-overlay-blue-light p-3 rounded-lg mb-4'>
           <ThemedText type='subtitle'>
             🎮 Iniciando juego en nivel:{' '}
             {Array.isArray(levelParam) ? levelParam[0] : levelParam}
           </ThemedText>
         </ThemedView>
       )}
-
-      <ThemedView style={styles.titleContainer}>
+      <ThemedView className='items-center gap-2 mb-4'>
         <ThemedText type='title'>🧠 ¡Mejora tu memoria!</ThemedText>
-        <ThemedText type='subtitle' style={styles.subtitle}>
+        <ThemedText type='subtitle' className='text-sm italic opacity-70'>
           Versión XState Machine
         </ThemedText>
       </ThemedView>
-
-      <ThemedView style={styles.description}>
+      <ThemedView className='gap-2 mb-4'>
         <ThemedText>{t('welcome')}</ThemedText>
         <ThemedText>{t('nreverse.description')}</ThemedText>
         <ThemedText type='defaultSemiBold'>
@@ -200,88 +138,73 @@ const WelcomeScreen = ({ game, levelParam }: WelcomeScreenProps) => {
           🏆 Puntuación: {game.score} | 🎯 Ronda: {game.round}
         </ThemedText>
       </ThemedView>
-
-      <ThemedView style={styles.buttonContainer}>
+      <ThemedView className='mt-5'>
         <Button onPress={game.startGame}>🚀 Comenzar Juego</Button>
       </ThemedView>
     </ParallaxScrollView>
   )
 }
 
-// Sequence Display Screen
-interface SequenceScreenProps {
-  readonly game: ReturnType<typeof useMemoryGameMachine>
-}
-
-const SequenceScreen = ({ game }: SequenceScreenProps) => {
-  return (
-    <ThemedView style={styles.sequenceContainer}>
-      <ThemedText type='title' style={styles.centeredText}>
-        🎯 Memoriza la secuencia
-      </ThemedText>
-
-      <ThemedText type='subtitle' style={styles.centeredText}>
-        {game.progress.sequenceProgress}
-      </ThemedText>
-
-      <ThemedView style={styles.digitDisplay}>
-        {game.currentDigit >= 0 ? (
-          <ThemedText type='title' style={styles.largeDigit}>
-            {game.currentDigit}
-          </ThemedText>
-        ) : (
-          <ThemedText type='subtitle' style={styles.preparingText}>
-            ⏳ Preparando...
-          </ThemedText>
-        )}
-      </ThemedView>
-
-      <ThemedView style={styles.gameInfo}>
-        <ThemedText type='default' style={styles.centeredText}>
-          📊 Nivel: {game.currentLevel} | 🎯 Ronda: {game.round}
+const SequenceScreen = ({
+  game,
+}: {
+  game: ReturnType<typeof useMemoryGameMachine>
+}) => (
+  <ThemedView className='flex-1 justify-center items-center p-5'>
+    <ThemedText type='title' className='text-center'>
+      🎯 Memoriza la secuencia
+    </ThemedText>
+    <ThemedText type='subtitle' className='text-center'>
+      {game.progress.sequenceProgress}
+    </ThemedText>
+    <ThemedView className='w-digit h-digit justify-center items-center rounded-digit bg-overlay-blue my-10 shadow'>
+      {game.currentDigit >= 0 ? (
+        <ThemedText type='title' className='text-digit-lg font-bold'>
+          {game.currentDigit}
         </ThemedText>
-        <ThemedText type='default' style={styles.centeredText}>
-          🏆 Puntuación: {game.score}
+      ) : (
+        <ThemedText type='subtitle' className='text-digit-sm opacity-70'>
+          ⏳ Preparando...
         </ThemedText>
-      </ThemedView>
+      )}
     </ThemedView>
-  )
-}
-
-// Transition Screen (nuevo para XState)
-interface TransitionScreenProps {
-  readonly game: ReturnType<typeof useMemoryGameMachine>
-}
-
-const TransitionScreen = ({ game }: TransitionScreenProps) => {
-  return (
-    <ThemedView style={styles.transitionContainer}>
-      <ThemedText type='title' style={styles.centeredText}>
-        🔄 Preparando entrada...
+    <ThemedView className='bg-overlay-light p-3 rounded-lg mt-4'>
+      <ThemedText type='default' className='text-center'>
+        📊 Nivel: {game.currentLevel} | 🎯 Ronda: {game.round}
       </ThemedText>
-
-      <ThemedView style={styles.pulseContainer}>
-        <ThemedText type='subtitle' style={styles.pulseText}>
-          ⚡
-        </ThemedText>
-      </ThemedView>
-
-      <ThemedText type='default' style={styles.centeredText}>
-        Introduce la secuencia en orden inverso
+      <ThemedText type='default' className='text-center'>
+        🏆 Puntuación: {game.score}
       </ThemedText>
     </ThemedView>
-  )
-}
+  </ThemedView>
+)
 
-// Input Screen
-interface InputScreenProps {
-  readonly game: ReturnType<typeof useMemoryGameMachine>
-}
+const TransitionScreen = ({
+  game,
+}: {
+  game: ReturnType<typeof useMemoryGameMachine>
+}) => (
+  <ThemedView className='flex-1 justify-center items-center p-5'>
+    <ThemedText type='title' className='text-center'>
+      🔄 Preparando entrada...
+    </ThemedText>
+    <ThemedView className='w-pulse h-pulse justify-center items-center rounded-pulse bg-overlay-pulse my-8'>
+      <ThemedText type='subtitle' className='text-pulse'>
+        ⚡
+      </ThemedText>
+    </ThemedView>
+    <ThemedText type='default' className='text-center'>
+      Introduce la secuencia en orden inverso
+    </ThemedText>
+  </ThemedView>
+)
 
-const InputScreen = ({ game }: InputScreenProps) => {
+const InputScreen = ({
+  game,
+}: {
+  game: ReturnType<typeof useMemoryGameMachine>
+}) => {
   const [inputValue, setInputValue] = useState('')
-
-  // Sincronizar input con userSequence del juego
   useEffect(() => {
     setInputValue(game.userSequence.join(''))
   }, [game.userSequence])
@@ -289,21 +212,19 @@ const InputScreen = ({ game }: InputScreenProps) => {
   const handleInputChange = useCallback(
     (text: string) => {
       const numericText = text.replace(/[^0-9]/g, '')
-
       if (numericText.length <= game.sequence.length) {
         const newSequence = numericText.split('').map(Number)
         const currentSequence = [...game.userSequence]
-
-        // Determinar si agregar o quitar dígitos
         if (newSequence.length > currentSequence.length) {
-          // Agregar dígitos nuevos
           for (let i = currentSequence.length; i < newSequence.length; i++) {
             game.addDigit(newSequence[i])
           }
         } else if (newSequence.length < currentSequence.length) {
-          // Quitar dígitos
-          const toRemove = currentSequence.length - newSequence.length
-          for (let i = 0; i < toRemove; i++) {
+          for (
+            let i = 0;
+            i < currentSequence.length - newSequence.length;
+            i++
+          ) {
             game.removeDigit()
           }
         }
@@ -313,40 +234,34 @@ const InputScreen = ({ game }: InputScreenProps) => {
   )
 
   const handleSubmit = useCallback(() => {
-    if (game.isSequenceComplete && !game.isPaused) {
-      game.submitAnswer()
-    }
+    if (game.isSequenceComplete && !game.isPaused) game.submitAnswer()
   }, [game])
 
   return (
-    <ThemedView style={styles.inputContainer}>
-      <ThemedView style={styles.timeContainer}>
+    <ThemedView className='flex-1 p-5 justify-center'>
+      <ThemedView className='items-center mb-5'>
         <ThemedText
           type='title'
-          style={[styles.timeText, game.timeLeft <= 10 && styles.timeWarning]}>
+          className={`text-2xl font-bold ${game.timeLeft <= 10 ? 'text-danger' : ''}`}>
           ⏰ Tiempo: {game.timeLeft}s
         </ThemedText>
-
         {game.isPaused && (
-          <ThemedText type='subtitle' style={styles.pausedText}>
+          <ThemedText type='subtitle' className='text-warning mt-2'>
             ⏸️ PAUSADO
           </ThemedText>
         )}
       </ThemedView>
-
-      <ThemedText type='subtitle' style={styles.centeredText}>
+      <ThemedText type='subtitle' className='text-center'>
         🔄 Ingresa la secuencia en orden inverso
       </ThemedText>
-
-      <ThemedText type='default' style={styles.centeredText}>
+      <ThemedText type='default' className='text-center'>
         📊 Progreso: {game.progress.inputProgress}
       </ThemedText>
-
-      <ThemedView style={styles.inputSection}>
+      <ThemedView className='my-8'>
         <TextInput
           value={inputValue}
           onChangeText={handleInputChange}
-          style={styles.textInput}
+          className='border-2 border-gray-300 rounded-lg p-3 text-lg text-center mb-4 bg-white'
           keyboardType='numeric'
           maxLength={game.sequence.length}
           placeholder={`Introduce ${game.sequence.length} dígitos`}
@@ -354,30 +269,27 @@ const InputScreen = ({ game }: InputScreenProps) => {
           autoFocus
           editable={!game.isPaused}
         />
-
-        <ThemedText type='default' style={styles.sequenceDisplay}>
+        <ThemedText
+          type='default'
+          className='text-center text-base tracking-seq mb-2'>
           📝 Tu secuencia: {game.userSequence.join(' ') || '---'}
         </ThemedText>
-
-        <ThemedText type='default' style={styles.hintText}>
+        <ThemedText type='default' className='text-center text-sm opacity-60'>
           💡 Secuencia original tenía {game.sequence.length} dígitos
         </ThemedText>
       </ThemedView>
-
-      <ThemedView style={styles.buttonRow}>
+      <ThemedView className='flex-row justify-around my-5 gap-4'>
         <Button onPress={game.togglePause} disabled={game.matches('finished')}>
           {game.isPaused ? '▶️ Reanudar' : '⏸️ Pausar'}
         </Button>
-
         <Button
           onPress={handleSubmit}
           disabled={!game.isSequenceComplete || game.isPaused}>
           ✅ Confirmar
         </Button>
       </ThemedView>
-
-      <ThemedView style={styles.gameInfo}>
-        <ThemedText type='default' style={styles.centeredText}>
+      <ThemedView className='bg-overlay-light p-3 rounded-lg mt-4'>
+        <ThemedText type='default' className='text-center'>
           📊 Nivel: {game.currentLevel} | 🏆 Puntuación: {game.score}
         </ThemedText>
       </ThemedView>
@@ -385,36 +297,26 @@ const InputScreen = ({ game }: InputScreenProps) => {
   )
 }
 
-// Finished Screen
-interface FinishedScreenProps {
-  readonly game: ReturnType<typeof useMemoryGameMachine>
-}
-
-const FinishedScreen = ({ game }: FinishedScreenProps) => {
+const FinishedScreen = ({
+  game,
+}: {
+  game: ReturnType<typeof useMemoryGameMachine>
+}) => {
   const result = game.lastResult
-
-  if (!result) {
+  if (!result)
     return <ErrorScreen game={game} error='No hay resultado disponible' />
-  }
-
   const isCorrect = result.isCorrect
-
   return (
-    <ThemedView style={styles.finishedContainer}>
+    <ThemedView className='flex-1 p-5 justify-center'>
       <ThemedText
         type='title'
-        style={[
-          styles.centeredText,
-          isCorrect ? styles.successText : styles.errorText,
-        ]}>
+        className={`text-center ${isCorrect ? 'text-success' : 'text-error'}`}>
         {isCorrect ? '🎉 ¡Correcto!' : '❌ Incorrecto'}
       </ThemedText>
-
-      <ThemedView style={styles.resultSection}>
-        <ThemedText type='defaultSemiBold' style={styles.resultTitle}>
+      <ThemedView className='bg-overlay-medium p-4 rounded-lg my-5 space-y-2'>
+        <ThemedText type='defaultSemiBold'>
           📊 Resultados de la ronda:
         </ThemedText>
-
         <ThemedText type='default'>
           🔢 Secuencia original: {game.sequence.join(' ')}
         </ThemedText>
@@ -424,24 +326,21 @@ const FinishedScreen = ({ game }: FinishedScreenProps) => {
         <ThemedText type='default'>
           📝 Tu respuesta: {result.userInput.join(' ') || 'Sin respuesta'}
         </ThemedText>
-
         {isCorrect && (
           <>
-            <ThemedText type='default' style={styles.bonusText}>
+            <ThemedText type='default' className='text-bonus font-medium'>
               🏆 Puntos de ronda: {result.roundScore}
             </ThemedText>
-            <ThemedText type='default' style={styles.bonusText}>
+            <ThemedText type='default' className='text-bonus font-medium'>
               ⚡ Bonus de tiempo: {result.timeBonus}
             </ThemedText>
           </>
         )}
       </ThemedView>
-
-      <ThemedText type='subtitle' style={styles.centeredText}>
+      <ThemedText type='subtitle' className='text-center'>
         🏆 Puntuación total: {game.score}
       </ThemedText>
-
-      <ThemedView style={styles.buttonRow}>
+      <ThemedView className='flex-row justify-around my-5 gap-4'>
         <Button onPress={game.nextRound}>
           {isCorrect ? '🎯 Siguiente Ronda' : '🔄 Reintentar'}
         </Button>
@@ -451,208 +350,23 @@ const FinishedScreen = ({ game }: FinishedScreenProps) => {
   )
 }
 
-// Error Screen
-interface ErrorScreenProps {
-  readonly game: ReturnType<typeof useMemoryGameMachine>
-  readonly error?: string
-}
-
-const ErrorScreen = ({ game, error }: ErrorScreenProps) => {
+const ErrorScreen = ({
+  game,
+  error,
+}: {
+  game: ReturnType<typeof useMemoryGameMachine>
+  error?: string
+}) => {
   const errorMessage = error || game.context.error || 'Error inesperado'
-
   return (
-    <ThemedView style={styles.errorContainer}>
-      <ThemedText type='title' style={styles.errorText}>
+    <ThemedView className='flex-1 justify-center items-center p-5'>
+      <ThemedText type='title' className='text-error'>
         ⚠️ Error
       </ThemedText>
-      <ThemedText style={styles.centeredText}>{errorMessage}</ThemedText>
-
-      <ThemedView style={styles.buttonContainer}>
+      <ThemedText className='text-center'>{errorMessage}</ThemedText>
+      <ThemedView className='mt-5'>
         <Button onPress={game.newGame}>🔄 Reiniciar Juego</Button>
       </ThemedView>
     </ThemedView>
   )
 }
-
-const styles = StyleSheet.create({
-  titleContainer: {
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 16,
-  },
-  subtitle: {
-    fontSize: 14,
-    opacity: 0.7,
-    fontStyle: 'italic',
-  },
-  description: {
-    gap: 8,
-    marginBottom: 16,
-  },
-  levelIndicator: {
-    backgroundColor: 'rgba(161, 206, 220, 0.3)',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-  },
-  buttonContainer: {
-    marginTop: 20,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-
-  // Sequence Screen
-  sequenceContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  digitDisplay: {
-    width: 120,
-    height: 120,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 60,
-    backgroundColor: 'rgba(161, 206, 220, 0.2)',
-    marginVertical: 40,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  largeDigit: {
-    fontSize: 48,
-    fontWeight: 'bold',
-  },
-  preparingText: {
-    fontSize: 16,
-    opacity: 0.7,
-  },
-
-  // Transition Screen
-  transitionContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  pulseContainer: {
-    width: 80,
-    height: 80,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 40,
-    backgroundColor: 'rgba(25, 118, 210, 0.1)',
-    marginVertical: 30,
-  },
-  pulseText: {
-    fontSize: 32,
-  },
-
-  // Input Screen
-  inputContainer: {
-    flex: 1,
-    padding: 20,
-    justifyContent: 'center',
-  },
-  timeContainer: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  timeText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  timeWarning: {
-    color: '#ff6b6b',
-  },
-  pausedText: {
-    color: '#ffa726',
-    marginTop: 8,
-  },
-  inputSection: {
-    marginVertical: 30,
-  },
-  textInput: {
-    borderWidth: 2,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 18,
-    textAlign: 'center',
-    marginBottom: 16,
-    backgroundColor: '#fff',
-  },
-  sequenceDisplay: {
-    textAlign: 'center',
-    fontSize: 16,
-    letterSpacing: 4,
-    marginBottom: 8,
-  },
-  hintText: {
-    textAlign: 'center',
-    fontSize: 14,
-    opacity: 0.6,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginVertical: 20,
-    gap: 16,
-  },
-
-  // Finished Screen
-  finishedContainer: {
-    flex: 1,
-    padding: 20,
-    justifyContent: 'center',
-  },
-  resultSection: {
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    padding: 16,
-    borderRadius: 8,
-    marginVertical: 20,
-    gap: 8,
-  },
-  resultTitle: {
-    marginBottom: 8,
-  },
-  successText: {
-    color: '#4caf50',
-  },
-  errorText: {
-    color: '#f44336',
-  },
-  bonusText: {
-    color: '#2196f3',
-    fontWeight: '500',
-  },
-
-  // Error Screen
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-
-  // Game Info
-  gameInfo: {
-    backgroundColor: 'rgba(0,0,0,0.03)',
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 16,
-  },
-
-  // Common
-  centeredText: {
-    textAlign: 'center',
-  },
-})
