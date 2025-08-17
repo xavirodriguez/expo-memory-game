@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { Pressable, Text, View } from 'react-native'
+// ejemplo en StorybookToggle.tsx
+import { Platform, Pressable, Text, View } from 'react-native'
 
 let StorybookUIRoot: any = null
-if (__DEV__) {
+if (__DEV__ && Platform.OS !== 'web') {
   StorybookUIRoot = require('../.rnstorybook').default
 }
 
