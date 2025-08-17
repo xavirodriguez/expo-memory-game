@@ -2,8 +2,18 @@
 
 import { start, updateView } from '@storybook/react-native';
 
-import '@storybook/addon-ondevice-controls/register';
-import '@storybook/addon-ondevice-actions/register';
+// Registrar addons de forma condicional
+try {
+  require('@storybook/addon-ondevice-controls/register');
+} catch (e) {
+  console.warn('addon-ondevice-controls not found');
+}
+
+try {
+  require('@storybook/addon-ondevice-actions/register');  
+} catch (e) {
+  console.warn('addon-ondevice-actions not found');
+}
 
 const normalizedStories = [
   {
@@ -26,11 +36,18 @@ declare global {
   var STORIES: typeof normalizedStories;
 }
 
+// Annotations con manejo de errores
 const annotations = [
   require('./preview'),
   require('@storybook/react-native/dist/preview'),
-  require('@storybook/addon-ondevice-actions/preview'),
 ];
+
+// Añadir preview de addons solo si están disponibles
+try {
+  annotations.push(require('@storybook/addon-ondevice-actions/preview'));
+} catch (e) {
+  console.warn('addon-ondevice-actions/preview not found');
+}
 
 global.STORIES = normalizedStories;
 
