@@ -1,9 +1,9 @@
 import { Image } from 'expo-image'
 import { Button, StyleSheet } from 'react-native'
 
-import ParallaxScrollView from '@/components/ParallaxScrollView'
-import { ThemedText } from '@/components/ThemedText'
-import { ThemedView } from '@/components/ThemedView'
+import { ThemedText } from '@/components/atoms/ThemedText'
+import { ThemedView } from '@/components/atoms/ThemedView'
+import ParallaxScrollView from '@/components/molecules/ParallaxScrollView'
 import { router } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 export default function HomeScreen() {

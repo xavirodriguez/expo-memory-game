@@ -3,7 +3,7 @@ import React from 'react'
 import { Platform } from 'react-native'
 
 import ErrorBoundary from '@/components/ErrorBoundary'
-import { HapticTab } from '@/components/HapticTab'
+import { HapticTab } from '@/components/atoms/HapticTab'
 import { IconSymbol } from '@/components/ui/IconSymbol'
 import TabBarBackground from '@/components/ui/TabBarBackground'
 import { Colors } from '@/constants/Colors'
