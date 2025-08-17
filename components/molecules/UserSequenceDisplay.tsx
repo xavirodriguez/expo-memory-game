@@ -1,4 +1,4 @@
-import { ThemedText } from '@/components/ThemedText'
+import { ThemedText } from '@/components/atoms/ThemedText'
 type UserSequenceDisplayProps = {
   userSequence: readonly number[]
   placeholder?: string

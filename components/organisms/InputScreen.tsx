@@ -1,4 +1,4 @@
-import { ThemedView } from '@/components/ThemedView'
+import { ThemedView } from '@/components/atoms/ThemedView'
 import ScoreBlock from '@/components/molecules/ScoreBlock'
 import TimerBlock from '@/components/molecules/TimerBlock'
 import InputPanel from '@/components/organisms/InputPanel'

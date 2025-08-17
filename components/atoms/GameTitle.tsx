@@ -1,4 +1,4 @@
-import { ThemedText } from '@/components/ThemedText'
+import { ThemedText } from '@/components/atoms/ThemedText'
 import { ReactNode } from 'react'
 type GameTitleProps = {
   children: ReactNode

@@ -1,6 +1,6 @@
-import { ThemedView } from '@/components/ThemedView'
 import GameDigit from '@/components/atoms/GameDigit'
 import GameTitle from '@/components/atoms/GameTitle'
+import { ThemedView } from '@/components/atoms/ThemedView'
 import ScoreBlock from '@/components/molecules/ScoreBlock'
 import SequenceProgress from '@/components/molecules/SequenceProgress'
 import { useMemoryGameMachine } from '@/hooks/useMemoryGameMachine'

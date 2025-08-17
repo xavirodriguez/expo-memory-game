@@ -1,6 +1,6 @@
-import { ThemedView } from '@/components/ThemedView'
 import GameButton from '@/components/atoms/GameButton'
 import GameInput from '@/components/atoms/GameInput'
+import { ThemedView } from '@/components/atoms/ThemedView'
 import UserSequence from '@/components/molecules/UserSequence'
 interface InputPanelProps {
   inputValue: string

@@ -1,4 +1,4 @@
-import { ThemedView } from '@/components/ThemedView'
+import { ThemedView } from '@/components/atoms/ThemedView'
 import React from 'react'
 import GameText from '../atoms/GameText'
 

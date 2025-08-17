@@ -1,8 +1,8 @@
 // components/ErrorBoundary.tsx
 import React, { Component, ErrorInfo, ReactNode } from 'react'
 import { StyleSheet, Text, TouchableOpacity } from 'react-native'
-import { ThemedText } from './ThemedText'
-import { ThemedView } from './ThemedView'
+import { ThemedText } from './atoms/ThemedText'
+import { ThemedView } from './atoms/ThemedView'
 
 interface ErrorBoundaryState {
   readonly hasError: boolean

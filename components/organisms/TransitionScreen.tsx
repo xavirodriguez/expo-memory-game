@@ -1,6 +1,6 @@
 import GameSubtitle from '@/components/atoms/GameSubtitle'
 import GameTitle from '@/components/atoms/GameTitle'
-import { ThemedView } from '@/components/ThemedView'
+import { ThemedView } from '@/components/atoms/ThemedView'
 import { useMemoryGameMachine } from '@/hooks/useMemoryGameMachine'
 import { useTranslation } from 'react-i18next'
 
